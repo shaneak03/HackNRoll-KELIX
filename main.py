@@ -136,13 +136,14 @@ def save_new_name(message):
 @bot.message_handler(commands=['startgame'])
 def prompt_game(message):
     if message.chat.type == 'group' or message.chat.type == 'supergroup':
-        markup = types.InlineKeyboardMarkup(row_width= 1)
+        markup = types.InlineKeyboardMarkup(row_width=1)
         guess = types.InlineKeyboardButton("Guess Who?", callback_data='guessWho')
-        markup.add(guess)
+        never_have_i_ever_button = types.InlineKeyboardButton("Never Have I Ever", callback_data='neverHaveIEver')
+        markup.add(guess, never_have_i_ever_button)
         bot.send_message(message.chat.id, "Pick a game!", reply_markup=markup)
     else:
         bot.reply_to(message, "Please use this command in a group chat.")
-                                                                          
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     match call.data:
@@ -160,15 +161,13 @@ def callback_query(call):
             guess_who_end(call.message, True)
         case "guessWhoLose":
             guess_who_end(call.message, False)
+        case "neverHaveIEver":
+            never_have_i_ever(bot, call.message)
         case _:
             print("missed callback query")
 
-
 # start-controversy start a controversial topic
 register_controversy_handlers(bot)
-
-
-never_have_i_ever(bot)
 
 # start-controversy start a controversial topic
 register_controversy_handlers(bot)
