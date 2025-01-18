@@ -54,13 +54,13 @@ def handle_join_group(call):
         bot.answer_callback_query(call.id, f"User {user_id} has joined the group!")
 
 # create a profile
-@bot.message_handler(commands=['createProfile'])
+@bot.message_handler(commands=['createprofile'])
 def create_profile(message):
     if message.chat.type == 'private':
         user_id = message.from_user.id
         user_response = supabase.table('User').select('id').eq('id', user_id).execute()
         if user_response.data:
-            bot.reply_to(message, "You already have a profile. Would you like to edit it?")
+            bot.reply_to(message, "You already have a profile. Would you like to edit it? \n Use /editprofile to edit")
         else:
             msg = bot.reply_to(message, "What is your name?")
             bot.register_next_step_handler(msg, ask_q1, {})
@@ -112,7 +112,7 @@ def save_profile(message, user_data):
     msg = bot.send_message(message.chat.id, "Profile Created")   
 
 # edit profile - edit the user's profile
-@bot.message_handler(commands=['editProfile'])
+@bot.message_handler(commands=['editprofile'])
 def edit_profile(message):
     if message.chat.type == 'private':
         markup = types.InlineKeyboardMarkup()
@@ -172,17 +172,6 @@ never_have_i_ever(bot)
 
 # start-controversy start a controversial topic
 register_controversy_handlers(bot)
-
-
-def handle_question(message):
-    question = message.text
-    bot.reply_to(message, f"Your question '{question}' has been received and a poll will be created.")
-    create_poll(message.chat.id, question)
-
-def create_poll(chat_id, question): 
-    options = ["A", "B"]
-    poll = types.Poll(question=question, options=options, is_anonymous=True)
-    bot.send_poll(chat_id, poll.question, poll.options, is_anonymous=poll.is_anonymous)
 
 
 bot.polling()
