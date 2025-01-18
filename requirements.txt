@@ -1,4 +1,4 @@
 supabase
-dotenv
+python-dotenv
 telebot
 # ...existing dependencies...

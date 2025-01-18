@@ -96,11 +96,6 @@ def save_new_name(message):
     new_name = message.text
     bot.reply_to(message, f"Your name has been updated to {new_name}.")
 
-@bot.message_handler(func=lambda message: True)
-def handle_all_messages(message):
-    user_id = message.from_user.id
-    bot.reply_to(message, f"Your user ID is {user_id}")
-
 
 # start a game
 @bot.message_handler(commands=['startGame'])
@@ -114,17 +109,14 @@ def prompt_game(message):
         bot.reply_to(message, "Please use this command in a group chat.")
                                                                           
 @bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
+def callback_queryF(call):
     if call.data == 'guess':
         bot.send_message(call.message.chat.id, "Starting Guess Who?...")
         #guess_who_start()
 
 
 # start-controversy start a controversial topic
-@bot.message_handler(commands=['startControversy'])
-def prompt_question(message):
-    msg = bot.reply_to(message, "Reply this message with a controversial question to start a poll")
-    bot.register_next_step_handler(msg, handle_question)
+register_controversy_handlers(bot)
 
 
 def handle_question(message):
