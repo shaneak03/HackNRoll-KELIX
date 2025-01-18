@@ -2,11 +2,20 @@ import telebot
 import threading
 from objects import Groups
 
-questions = [
-    "Never have I ever fallen asleep during a meeting or class.",
-    "Never have I ever ghosted someone.",
-    "Never have I ever slept with socks on."
-]
+questions = ["Never have I ever accidentally waved back at someone who wasn’t waving at me.",
+             "Never have I ever walked into the wrong opposite gender's toilet.",
+             "Never have I ever tripped over absolutely nothing.",
+             "Never have I ever sent a text to the wrong person.",
+             "Never have I ever fallen asleep in class or during a meeting.",
+             "Never have I ever gone bungee jumping or skydiving.",
+             "Never have I ever traveled to another country alone.",
+             "Never have I ever dropped food on the floor and still eaten it",
+             "Never have I ever lied on my resume.",
+             "Never have I ever dropped my phone in the toilet.",
+             "Never have I ever accidentally liked an old social media post while stalking someone.",
+             "Never have I ever talked to myself in the mirror.",
+             "Never have I ever made up an excuse to get out of plans.",
+             "Never have I ever Googled myself out of curiosity."]
 
 # Dictionary to track points for each user
 user_points = {}
@@ -40,7 +49,7 @@ def ask_next_question(bot, message, question_index):
         poll_message = bot.send_poll(
             chat_id=message.chat.id,
             question=question,
-            options=["Yes", "No"],
+            options=["Have", "Have Not"],
             is_anonymous=False,
             allows_multiple_answers=False,
             type='regular'
@@ -59,16 +68,23 @@ def close_poll(bot, poll_id, chat_id, question_index):
         for user_id in user_points[chat_id]:
             if user_points[chat_id][user_id] > 0:
                 user_points[chat_id][user_id] -= 1
+                if user_points[chat_id][user_id] == 0:
+                    bot.send_message(chat_id, f"User {user_id} is eliminated!")
         ask_next_question_by_poll(bot, chat_id, question_index + 1)
 
 def handle_poll_answer(bot, poll_answer):
     poll_id = poll_answer.poll_id
     user_id = poll_answer.user.id
-    chat_id = poll_id_to_chat_id[poll_id]
+    chat_id = poll_id_to_chat_id.get(poll_id)
+    if chat_id is None:
+        print(f"Poll ID {poll_id} not found in poll_id_to_chat_id")
+        return
     if user_id not in user_points[chat_id]:
         user_points[chat_id][user_id] = 10  # Initialize points for the user if not already present
     if poll_answer.option_ids[0] == 0:  # "Yes" is the first option
         user_points[chat_id][user_id] -= 1
+        if user_points[chat_id][user_id] == 0:
+            bot.send_message(chat_id, f"User {user_id} is eliminated!")
     if not poll_answered[poll_id]:
         poll_answered[poll_id] = True
         question_index = get_question_index(poll_id)

@@ -4,6 +4,7 @@ import telebot
 from telebot import types
 import random
 import csv
+from src.utils.supabase_client import supabase
 
 load_dotenv()
 
@@ -13,11 +14,19 @@ SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 
 bot = telebot.TeleBot(TELE_API_KEY)
 
-def pull_data():
+def pull_data(call):
     with open("guessWhoData.txt", "w", newline='') as csvfile:
         file = csv.writer(csvfile)
-        for i in range(5):
-            file.writerow((f"Question {i+1}", f"Answer {i+1}"))
+        print(call.chat_instance)
+        query = supabase.table("Groups").select("members_id").eq("grp_id", call.chat_instance).execute()
+        author = random.choice(query.data[0]["members_id"])
+
+        s = supabase.table('User').select('*').eq('id', author).execute()
+        print(s)
+
+        qs_key =["q1", "q2", "q3", "q4", "q5"]
+        for key in qs_key:
+            file.writerow([s.data[0][key], s.data[0][key + "_ans"]])
     print("Data pulled")
 
 def guess_who_init(message):
@@ -39,20 +48,20 @@ def guess_who_details(message):
     details = "In this game, the bot will randomly select a user as the mysterious author.\n\nThe bot will then present a question along with one answer written by that person. The group's task is to guess who the author is, but beware—the author will actively try to mislead the group to protect their identity!\n\nThe group gets one guess per round. If the guess is incorrect, the bot will reveal another answer written by the same author to give the group more clues. The game continues until the group correctly identifies the author or uses up a total of five guesses.\n\nCan you uncover the truth, or will the author successfully hide in plain sight? Good luck!"
     bot.send_message(message.chat.id, text = details, reply_markup=markup)
 
-def guess_who_start(message):
+def guess_who_start(call):
     markup = types.InlineKeyboardMarkup(row_width=1)
     ghnext = types.InlineKeyboardButton("Next clue..", callback_data='guessWhoNext')
     ghend = types.InlineKeyboardButton("Mysterious Author Found!", callback_data='guessWhoWin')
     markup.add(ghnext, ghend)
     
-    pull_data()
+    pull_data(call)
 
     with open("guessWhoData.txt", "r") as csvfile:
         data = csv.reader(csvfile)
         data = list(data)
     first = random.choice(data)
     print(data)
-    bot.send_message(message.chat.id, text = f"First clue!~\n\nThe question is : {first[0]}.\n\nThe answer is : {first[1]}", reply_markup=markup)
+    bot.send_message(call.message.chat.id, text = f"First clue!~\n\nThe question is : {first[0]}\n\nThe answer is : {first[1]}", reply_markup=markup)
 
     data.remove(first)  # Remove the selected row
     data = [row for row in data if row]  # Filter out empty rows
@@ -77,7 +86,6 @@ def guess_who_next(message):
         ghnext = types.InlineKeyboardButton("Last guess.....", callback_data='guessWhoLose')
         ghend = types.InlineKeyboardButton("Mysterious Author Found!", callback_data='guessWhoWin')
         markup.add(ghnext, ghend)
-
     demeanings = [
   "Is that the best you can do?",
   "Seriously? You can do better than that!",
@@ -94,7 +102,7 @@ def guess_who_next(message):
     next_data = random.choice(data)
     print("data :", data)
     print(next_data)
-    bot.send_message(message.chat.id, text = demeaning + f"\n\nThe question is : {next_data[0]}.\n\nThe answer is : {next_data[1]}", reply_markup=markup)
+    bot.send_message(message.chat.id, text = demeaning + f"\n\nThe question is : {next_data[0]}\n\nThe answer is : {next_data[1]}", reply_markup=markup)
     
     data.remove(next_data)  # Remove the selected row
     data = [row for row in data if row]  # Filter out empty rows

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import telebot
 import random
 from telebot import types
-from controversy_handlers import register_controversy_handlers
+from controversy_handlers import start_controversy
 from objects import Users, Groups, questions
 from src.utils.supabase_client import supabase
 from never_have_i_ever import never_have_i_ever, handle_poll_answer
@@ -27,7 +27,7 @@ def send_welcome(message):
         bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /startGame - Start playing a game \n\n /initGroup - Initialise a group in the chat \n\n Please use /createProfile in a private chat to create your profile.")
 
 # initialise group
-@bot.message_handler(commands=['initGroup'])
+@bot.message_handler(commands=['initgroup'])
 def init_group(message):
     if message.chat.type == 'group' or message.chat.type == 'supergroup':
         markup = types.InlineKeyboardMarkup()
@@ -139,7 +139,8 @@ def prompt_game(message):
         markup = types.InlineKeyboardMarkup(row_width=1)
         guess = types.InlineKeyboardButton("Guess Who?", callback_data='guessWho')
         never_have_i_ever_button = types.InlineKeyboardButton("Never Have I Ever", callback_data='neverHaveIEver')
-        markup.add(guess, never_have_i_ever_button)
+        controversy_button = types.InlineKeyboardButton("Start Controversy", callback_data='startControversy')
+        markup.add(guess, never_have_i_ever_button, controversy_button)
         bot.send_message(message.chat.id, "Pick a game!", reply_markup=markup)
     else:
         bot.reply_to(message, "Please use this command in a group chat.")
@@ -154,7 +155,7 @@ def callback_query(call):
         case "guessWhoDetails":
             guess_who_details(call.message)
         case "guessWhoStart":
-            guess_who_start(call.message)
+            guess_who_start(call)
         case "guessWhoNext":
             guess_who_next(call.message)
         case "guessWhoWin":
@@ -163,16 +164,14 @@ def callback_query(call):
             guess_who_end(call.message, False)
         case "neverHaveIEver":
             never_have_i_ever(bot, call.message)
+        case "startControversy":
+            start_controversy(bot, call.message)
         case _:
             print("missed callback query")
 
 @bot.poll_answer_handler()
 def poll_answer_handler(poll_answer):
     handle_poll_answer(bot, poll_answer)
-
-# start-controversy start a controversial topic
-register_controversy_handlers(bot)
-
 
 bot.polling()
 print("Bot is polling...")
