@@ -4,6 +4,7 @@ import telebot
 from telebot import types
 from controversy_handlers import register_controversy_handlers
 
+
 questions = ["What is your favourite food?",
              "What is your favourite movie?",
              "What is your favourite song?"]
