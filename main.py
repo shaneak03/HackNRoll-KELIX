@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import telebot
 from telebot import types
+from controversy_handlers import register_controversy_handlers
 
 questions = ["What is your favourite food?",
              "What is your favourite movie?",
@@ -20,7 +21,7 @@ bot = telebot.TeleBot(TELE_API_KEY)
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
     if message.chat.type == 'private':
-        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /createProfile - Create a profile \n")
+        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /createProfile - Create a profile \n\n /editProfile - Edit your profile \n")
     else:
         bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /startGame - Start playing a game \n\n /initGroup - Initialise a group in the chat \n\n Please use /createProfile in a private chat to create your profile.")
 
@@ -124,6 +125,7 @@ def callback_query(call):
 def prompt_question(message):
     msg = bot.reply_to(message, "Reply this message with a controversial question to start a poll")
     bot.register_next_step_handler(msg, handle_question)
+
 
 def handle_question(message):
     question = message.text
