@@ -125,7 +125,7 @@ def handle_question(message):
     bot.reply_to(message, f"Your question '{question}' has been received and a poll will be created.")
     create_poll(message.chat.id, question)
 
-def create_poll(chat_id, question):
+def create_poll(chat_id, question): 
     options = ["A", "B"]
     poll = types.Poll(question=question, options=options, is_anonymous=True)
     bot.send_poll(chat_id, poll.question, poll.options, is_anonymous=poll.is_anonymous)
