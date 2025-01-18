@@ -16,20 +16,34 @@ SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 # Setting up the bot
 bot = telebot.TeleBot(TELE_API_KEY)
 
-# start
-@bot.message_handler(commands=['start'])
+# help/start, teach people how to use the bot
+@bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
-    bot.reply_to(message, "Welcome to the bot! \nUse /help to get started")
+    if message.chat.type == 'private':
+        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /createProfile - Create a profile \n")
+    else:
+        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /startGame - Start playing a game \n\n Please use /createProfile in a private chat to create your profile.")
 
+# initialise group
+@bot.message_handler(commands=['initGroup'])
+def init_group(message):
+    if message.chat.type == 'group' or message.chat.type == 'supergroup':
+        markup = types.InlineKeyboardMarkup()
+        join_button = types.InlineKeyboardButton("Join", callback_data="join_group")
+        markup.add(join_button)
+        bot.reply_to(message, "This group has been initialised for IcePick!", reply_markup=markup)
+    else:
+        bot.reply_to(message, "Please use this command in a group or supergroup.")
 
-# help, teach people how to use the bot
-@bot.message_handler(commands=['help'])
-def send_welcome(message):
-    bot.reply_to(message, "Welcome to the bot!")
+@bot.callback_query_handler(func=lambda call: call.data == "join_group")
+def handle_join_group(call):
+    user_id = call.from_user.id
+    bot.answer_callback_query(call.id, f"User {user_id} has joined the group!")
+    # Add logic to handle the user joining the group
 
 
 # create a profile
-@bot.message_handler(commands=['create-profile'])
+@bot.message_handler(commands=['createProfile'])
 def create_profile(message):
     if message.chat.type == 'private':
         msg = bot.reply_to(message, "What is your name?")
@@ -60,8 +74,26 @@ def handle_answer(message, question_index, answers):
 
     ask_next_question(message, question_index + 1, answers)
 
+
+# start a game
+@bot.message_handler(commands=['startGame'])
+def prompt_game(message):
+    if message.chat.type == 'group' or message.chat.type == 'supergroup':
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        guess = types.InlineKeyboardButton("Guess Who?", callback_data='guess')
+        markup.add(guess)
+        bot.send_message(message.chat.id, "Pick a game!", reply_markup=markup)
+    else:
+        bot.reply_to(message, "Please use this command in a group chat.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data == 'guess':
+        bot.send_message(call.message.chat.id, "Starting Guess Who?...")
+        #guess_who_start()
+
 # start-controversy start a controversial topic
-@bot.message_handler(commands=['start-controversy'])
+@bot.message_handler(commands=['startControversy'])
 def prompt_question(message):
     msg = bot.reply_to(message, "Reply this message with a controversial question to start a poll")
     bot.register_next_step_handler(msg, handle_question)
@@ -75,6 +107,7 @@ def create_poll(chat_id, question):
     options = ["A", "B"]
     poll = types.Poll(question=question, options=options, is_anonymous=True)
     bot.send_poll(chat_id, poll.question, poll.options, is_anonymous=poll.is_anonymous)
+
 
 bot.polling()
 
