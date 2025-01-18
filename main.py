@@ -3,6 +3,10 @@ from dotenv import load_dotenv
 import telebot
 from telebot import types
 
+questions = ["What is your favourite food?",
+             "What is your favourite movie?",
+             "What is your favourite song?"]
+
 load_dotenv()
 
 TELE_API_KEY = os.getenv('TELE_API_KEY')
@@ -40,8 +44,21 @@ def handle_name(message):
 
 def handle_funFact(message):
     funFact = message.text
-    bot.reply_to(message, f"Got it! Your fun fact is: {funFact}. Your profile has been created.")
+    bot.reply_to(message, f"Got it! Your fun fact is: {funFact}.")
+    ask_next_question(message, 0, {})
 
+def ask_next_question(message, question_index, answers):
+    if question_index < len(questions):
+        msg = bot.reply_to(message, questions[question_index])
+        bot.register_next_step_handler(msg, lambda m: handle_answer(m, question_index, answers))
+    else:
+        bot.reply_to(message, f"Thank you for answering all the questions! Here are your answers: {answers}")
+
+def handle_answer(message, question_index, answers):
+    answers[questions[question_index]] = message.text
+    # Add logic to store the answer in the database
+
+    ask_next_question(message, question_index + 1, answers)
 
 # start-controversy start a controversial topic
 @bot.message_handler(commands=['start-controversy'])
@@ -60,3 +77,5 @@ def create_poll(chat_id, question):
     bot.send_poll(chat_id, poll.question, poll.options, is_anonymous=poll.is_anonymous)
 
 bot.polling()
+
+
