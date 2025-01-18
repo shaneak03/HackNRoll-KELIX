@@ -6,7 +6,8 @@ from telebot import types
 from controversy_handlers import register_controversy_handlers
 from objects import Users, Groups, questions
 from src.utils.supabase_client import supabase
-
+from never_have_i_ever import never_have_i_ever
+from guess_who import guess_who_init, guess_who_details, guess_who_start, guess_who_next, guess_who_end
 
 load_dotenv()
 
@@ -132,22 +133,42 @@ def save_new_name(message):
 
 
 # start a game
-@bot.message_handler(commands=['startGame'])
+@bot.message_handler(commands=['startgame'])
 def prompt_game(message):
     if message.chat.type == 'group' or message.chat.type == 'supergroup':
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        guess = types.InlineKeyboardButton("Guess Who?", callback_data='guess')
+        markup = types.InlineKeyboardMarkup(row_width= 1)
+        guess = types.InlineKeyboardButton("Guess Who?", callback_data='guessWho')
         markup.add(guess)
         bot.send_message(message.chat.id, "Pick a game!", reply_markup=markup)
     else:
         bot.reply_to(message, "Please use this command in a group chat.")
                                                                           
 @bot.callback_query_handler(func=lambda call: True)
-def callback_queryF(call):
-    if call.data == 'guess':
-        bot.send_message(call.message.chat.id, "Starting Guess Who?...")
-        #guess_who_start()
+def callback_query(call):
+    match call.data:
+        case "newGame":
+            prompt_game(call.message)
+        case "guessWho":
+            guess_who_init(call.message)
+        case "guessWhoDetails":
+            guess_who_details(call.message)
+        case "guessWhoStart":
+            guess_who_start(call.message)
+        case "guessWhoNext":
+            guess_who_next(call.message)
+        case "guessWhoWin":
+            guess_who_end(call.message, True)
+        case "guessWhoLose":
+            guess_who_end(call.message, False)
+        case _:
+            print("missed callback query")
 
+
+# start-controversy start a controversial topic
+register_controversy_handlers(bot)
+
+
+never_have_i_ever(bot)
 
 # start-controversy start a controversial topic
 register_controversy_handlers(bot)
