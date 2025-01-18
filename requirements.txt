@@ -1,2 +1,4 @@
 supabase
+dotenv
+telebot
 # ...existing dependencies...
