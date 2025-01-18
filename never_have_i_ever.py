@@ -28,6 +28,7 @@ def never_have_i_ever(bot: telebot.TeleBot, message):
 def initialize_points(bot, message):
     chat_id = message.chat.id
     group = Groups(chat_id)
+    group.pull_members()
     members = group.members_id
     user_points[chat_id] = {}
     for member_id in members:

@@ -27,7 +27,7 @@ def send_welcome(message):
         bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /startGame - Start playing a game \n\n /initGroup - Initialise a group in the chat \n\n Please use /createProfile in a private chat to create your profile.")
 
 # initialise group
-@bot.message_handler(commands=['initgroup'])
+@bot.message_handler(commands=['initGroup'])
 def init_group(message):
     if message.chat.type == 'group' or message.chat.type == 'supergroup':
         markup = types.InlineKeyboardMarkup()
