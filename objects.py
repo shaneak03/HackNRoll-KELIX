@@ -93,11 +93,19 @@ class Responses:
             "answer": self.answer
         })
 
-class Group:
+class Groups:
     def __init__(self, grp_id):
-        self.grp_id = grp_id
-        self.members_id = []
-        self.qns_and_ans = []
+        group_response = supabase.table('Groups').select('*').eq('grp_id', grp_id).execute()
+        if group_response.data:
+            print("Group alread exists")
+            self.grp_id = group_response.data[0]['grp_id']
+            self.members_id = group_response.data[0]['members_id']
+            self.qns_and_ans = group_response.data[0]['qns_and_ans']
+        else:
+            print("creating new group")
+            self.grp_id = grp_id
+            self.members_id = []
+            self.qns_and_ans = []
 
     def update_group_in_DB(self):
         # Check if the group exists in the database
@@ -126,17 +134,23 @@ class Group:
     def pull_facts_from_db(self, user_id):
         print("Pulling usr info")
         user = supabase.table('User').select('*').eq('id', user_id).execute()
-        print("user found to pull facts from")
-        self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q1'], user.data[0]['q1_ans']))
-        self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q2'], user.data[0]['q2_ans']))
-        self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q3'], user.data[0]['q3_ans']))
-        self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q4'], user.data[0]['q4_ans']))
-        self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q5'], user.data[0]['q5_ans']))
+        if not user.data:
+            print(f"User with ID {user_id} not found.")
+            return 1
+        else:
+            print(F"user found to pull facts from {user}")
+            self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q1'], user.data[0]['q1_ans']))
+            self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q2'], user.data[0]['q2_ans']))
+            self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q3'], user.data[0]['q3_ans']))
+            self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q4'], user.data[0]['q4_ans']))
+            self.qns_and_ans.append(Responses(user.data[0]['name'], user.data[0]['q5'], user.data[0]['q5_ans']))
+            return 0
 
     def add_member(self, user_id):
         # Add to DB and pull qns and Ans
         self.members_id.append(user_id)
-        self.pull_facts_from_db(user_id)
+        if self.pull_facts_from_db(user_id) == 1:
+            return 1
         self.update_group_in_DB()
 
     def pull_all_facts_for_group(self):
@@ -152,7 +166,7 @@ class Group:
             print("Group not found.")
 
 if __name__ == "__main__":
-    g1 = Group("grp1")
+    g1 = Groups("grp1")
     g1.add_member("test_id")
     g1.add_member("Test User2")
     print("g1 user created")
@@ -160,7 +174,7 @@ if __name__ == "__main__":
     g1.update_group_in_DB()
     print("g1 updated to db")
 
-    g2 = Group("grp1")
+    g2 = Groups("grp1")
     g2.pull_all_facts_for_group()
     print("g2 pulled from db")
 

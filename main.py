@@ -1,13 +1,12 @@
 import os
 from dotenv import load_dotenv
 import telebot
+import random
 from telebot import types
 from controversy_handlers import register_controversy_handlers
+from objects import Users, Groups, questions
+from src.utils.supabase_client import supabase
 
-
-questions = ["What is your favourite food?",
-             "What is your favourite movie?",
-             "What is your favourite song?"]
 
 load_dotenv()
 
@@ -33,6 +32,10 @@ def init_group(message):
         markup = types.InlineKeyboardMarkup()
         join_button = types.InlineKeyboardButton("Join", callback_data="join_group")
         markup.add(join_button)
+        
+        # Create and store group
+        group = Groups(message.chat.id)
+        group.update_group_in_DB()
         bot.reply_to(message, "This group has been initialised for IcePick!", reply_markup=markup)
     else:
         bot.reply_to(message, "Please use this command in a group or supergroup.")
@@ -40,42 +43,72 @@ def init_group(message):
 @bot.callback_query_handler(func=lambda call: call.data == "join_group")
 def handle_join_group(call):
     user_id = call.from_user.id
-    bot.answer_callback_query(call.id, f"User {user_id} has joined the group!")
-    # Add logic to handle the user joining the group
+    print(f"User joingroup call back received: {user_id}")
 
+    # Add logic to handle the user joining the group
+    group = Groups(call.chat_instance)
+    if group.add_member(user_id) == 1:
+        bot.send_message(call.message.chat.id, f"User with ID {user_id} not found!\nCreate your account by Message @IceAxe_bot")
+    else:
+        bot.answer_callback_query(call.id, f"User {user_id} has joined the group!")
 
 # create a profile
 @bot.message_handler(commands=['createProfile'])
 def create_profile(message):
     if message.chat.type == 'private':
-        msg = bot.reply_to(message, "What is your name?")
-        bot.register_next_step_handler(msg, handle_name)
+        user_id = message.from_user.id
+        user_response = supabase.table('User').select('id').eq('id', user_id).execute()
+        if user_response.data:
+            bot.reply_to(message, "You already have a profile. Would you like to edit it?")
+        else:
+            msg = bot.reply_to(message, "What is your name?")
+            bot.register_next_step_handler(msg, ask_q1, {})
     else:
         bot.reply_to(message, "Please use this command in a private chat.")
 
-def handle_name(message):
-    name = message.text
-    msg = bot.reply_to(message, f"Nice to meet you, {name}! Write a fun fact about yourself! Please write something that you do not mind revealing to the world. Also your fun fact should not reveal anything about your identity.")
-    bot.register_next_step_handler(msg, handle_funFact)
 
-def handle_funFact(message):
-    funFact = message.text
-    bot.reply_to(message, f"Got it! Your fun fact is: {funFact}.")
-    ask_next_question(message, 0, {})
+def ask_q1(message, user_data):
+    user_data['name'] = message.text
+    qns = random.sample(questions, 5)
+    user_data['qns'] = qns
+    bot.send_message(message.chat.id, f"Hi {user_data['name']}, let's get to know you better! Answer the following questions:")
+    msg = bot.send_message(message.chat.id, user_data['qns'][0])
+    user_data['q1'] = user_data['qns'][0]
+    bot.register_next_step_handler(msg, ask_q2, user_data)
 
-def ask_next_question(message, question_index, answers):
-    if question_index < len(questions):
-        msg = bot.reply_to(message, questions[question_index])
-        bot.register_next_step_handler(msg, lambda m: handle_answer(m, question_index, answers))
-    else:
-        bot.reply_to(message, f"Thank you for answering all the questions! Here are your answers: {answers}")
+def ask_q2(message, user_data):
+    user_data['q1_ans'] = message.text
+    curr_qn = user_data['qns'][1]
+    user_data['q2'] = curr_qn
+    msg = bot.send_message(message.chat.id, curr_qn)
+    bot.register_next_step_handler(msg, ask_q3, user_data)
 
-def handle_answer(message, question_index, answers):
-    answers[questions[question_index]] = message.text
-    # Add logic to store the answer in the database
+def ask_q3(message, user_data):
+    user_data['q2_ans'] = message.text
+    curr_qn = user_data['qns'][2]
+    user_data['q3'] = curr_qn
+    msg = bot.send_message(message.chat.id, curr_qn)
+    bot.register_next_step_handler(msg, ask_q4, user_data)
 
-    ask_next_question(message, question_index + 1, answers)
+def ask_q4(message, user_data):
+    user_data['q3_ans'] = message.text
+    curr_qn = user_data['qns'][3]
+    user_data['q4'] = curr_qn
+    msg = bot.send_message(message.chat.id, curr_qn)
+    bot.register_next_step_handler(msg, ask_q5, user_data)
 
+def ask_q5(message, user_data):
+    user_data['q4_ans'] = message.text
+    curr_qn = user_data['qns'][4]
+    user_data['q5'] = curr_qn
+    msg = bot.send_message(message.chat.id, curr_qn)
+    bot.register_next_step_handler(msg, save_profile, user_data)
+
+def save_profile(message, user_data):
+    user_data['q5_ans'] = message.text
+    user = Users(message.from_user.id, user_data['name'], user_data['q1'], user_data['q2'], user_data['q3'], user_data['q4'], user_data['q5'], user_data['q1_ans'], user_data['q2_ans'], user_data['q3_ans'], user_data['q4_ans'], user_data['q5_ans'])
+    user.create_user_in_db()
+    msg = bot.send_message(message.chat.id, "Profile Created")   
 
 # edit profile - edit the user's profile
 @bot.message_handler(commands=['editProfile'])
@@ -132,5 +165,6 @@ def create_poll(chat_id, question):
 
 
 bot.polling()
+print("Bot is polling...")
 
 
