@@ -20,20 +20,20 @@ poll_answered = {}
 def never_have_i_ever(bot: telebot.TeleBot, message):
     if message.chat.type == 'group' or message.chat.type == 'supergroup':
         bot.reply_to(message, "Starting 'Never Have I Ever' game!")
-        initialize_points(message)
-        ask_next_question(message, 0)
+        initialize_points(bot, message)
+        ask_next_question(bot, message, 0)
     else:
         bot.reply_to(message, "Please use this command in a group or supergroup.")
 
-def initialize_points(message):
+def initialize_points(bot, message):
     chat_id = message.chat.id
     group = Groups(chat_id)
-    members = group.pull_members()
+    members = group.members_id
     user_points[chat_id] = {}
     for member_id in members:
         user_points[chat_id][member_id] = 10
 
-def ask_next_question(message, question_index):
+def ask_next_question(bot, message, question_index):
     if question_index < len(questions):
         question = questions[question_index]
         poll_message = bot.send_poll(
@@ -47,21 +47,20 @@ def ask_next_question(message, question_index):
         poll_id_to_question_index[poll_message.poll.id] = question_index
         poll_id_to_chat_id[poll_message.poll.id] = message.chat.id
         poll_answered[poll_message.poll.id] = False
-        threading.Timer(30.0, close_poll, args=[poll_message.poll.id, message.chat.id, question_index]).start()
+        threading.Timer(30.0, close_poll, args=[bot, poll_message.poll.id, message.chat.id, question_index]).start()
     else:
         bot.send_message(message.chat.id, "Game over! Thanks for playing.")
-        display_points(message)
+        display_points(bot, message)
 
-def close_poll(poll_id, chat_id, question_index):
+def close_poll(bot, poll_id, chat_id, question_index):
     if not poll_answered[poll_id]:
         bot.stop_poll(chat_id, poll_id)
         for user_id in user_points[chat_id]:
             if user_points[chat_id][user_id] > 0:
                 user_points[chat_id][user_id] -= 1
-        ask_next_question_by_poll(chat_id, question_index + 1)
+        ask_next_question_by_poll(bot, chat_id, question_index + 1)
 
-@bot.poll_answer_handler()
-def handle_poll_answer(poll_answer):
+def handle_poll_answer(bot, poll_answer):
     poll_id = poll_answer.poll_id
     user_id = poll_answer.user.id
     chat_id = poll_id_to_chat_id[poll_id]
@@ -73,12 +72,12 @@ def handle_poll_answer(poll_answer):
         poll_answered[poll_id] = True
         question_index = get_question_index(poll_id)
         # Ensure the next question is asked only after 30 seconds
-        threading.Timer(30.0, ask_next_question_by_poll, args=[chat_id, question_index + 1]).start()
+        threading.Timer(30.0, ask_next_question_by_poll, args=[bot, chat_id, question_index + 1]).start()
 
 def get_question_index(poll_id):
     return poll_id_to_question_index.get(poll_id, 0)
 
-def ask_next_question_by_poll(chat_id, question_index):
+def ask_next_question_by_poll(bot, chat_id, question_index):
     if question_index < len(questions):
         question = questions[question_index]
         poll_message = bot.send_poll(
@@ -92,16 +91,16 @@ def ask_next_question_by_poll(chat_id, question_index):
         poll_id_to_question_index[poll_message.poll.id] = question_index
         poll_id_to_chat_id[poll_message.poll.id] = chat_id
         poll_answered[poll_message.poll.id] = False
-        threading.Timer(30.0, close_poll, args=[poll_message.poll.id, chat_id, question_index]).start()
+        threading.Timer(30.0, close_poll, args=[bot, poll_message.poll.id, chat_id, question_index]).start()
     else:
         bot.send_message(chat_id, "Game over! Thanks for playing.")
-        display_points_by_chat_id(chat_id)
+        display_points_by_chat_id(bot, chat_id)
 
-def display_points(message):
+def display_points(bot, message):
     chat_id = message.chat.id
-    display_points_by_chat_id(chat_id)
+    display_points_by_chat_id(bot, chat_id)
 
-def display_points_by_chat_id(chat_id):
+def display_points_by_chat_id(bot, chat_id):
     points_message = "Final points:\n"
     for user_id, points in user_points[chat_id].items():
         user = bot.get_chat_member(chat_id, user_id).user

@@ -6,7 +6,7 @@ from telebot import types
 from controversy_handlers import register_controversy_handlers
 from objects import Users, Groups, questions
 from src.utils.supabase_client import supabase
-from never_have_i_ever import never_have_i_ever
+from never_have_i_ever import never_have_i_ever, handle_poll_answer
 from guess_who import guess_who_init, guess_who_details, guess_who_start, guess_who_next, guess_who_end
 
 load_dotenv()
@@ -27,7 +27,7 @@ def send_welcome(message):
         bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /startGame - Start playing a game \n\n /initGroup - Initialise a group in the chat \n\n Please use /createProfile in a private chat to create your profile.")
 
 # initialise group
-@bot.message_handler(commands=['initGroup'])
+@bot.message_handler(commands=['initgroup'])
 def init_group(message):
     if message.chat.type == 'group' or message.chat.type == 'supergroup':
         markup = types.InlineKeyboardMarkup()
@@ -166,8 +166,9 @@ def callback_query(call):
         case _:
             print("missed callback query")
 
-# start-controversy start a controversial topic
-register_controversy_handlers(bot)
+@bot.poll_answer_handler()
+def poll_answer_handler(poll_answer):
+    handle_poll_answer(bot, poll_answer)
 
 # start-controversy start a controversial topic
 register_controversy_handlers(bot)
