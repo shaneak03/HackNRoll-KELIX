@@ -22,9 +22,9 @@ bot = telebot.TeleBot(TELE_API_KEY)
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
     if message.chat.type == 'private':
-        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /createProfile - Create a profile \n\n /editProfile - Edit your profile \n")
+        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /createprofile - Create a profile \n\n /editprofile - Edit your profile \n")
     else:
-        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /startGame - Start playing a game \n\n /initGroup - Initialise a group in the chat \n\n Please use /createProfile in a private chat to create your profile.")
+        bot.reply_to(message, "Welcome to the IcePick bot! \n\n Here are the commands you can use: \n\n /startgame - Start playing a game \n\n /initgroup - Initialise a group in the chat \n\n Please use /createprofile in a private chat to create your profile.")
 
 # initialise group
 @bot.message_handler(commands=['initgroup'])
