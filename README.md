@@ -1,6 +1,6 @@
 # HackNRoll-KELIX
 
-## Telegram Bot
+## [Telegram Bot](https://t.me/IceAxe_bot)
 
 ## About Us and Vision
 Hello! We are KELIX, a passionate team that is participating in HackNRoll. We have built a Telegram bot called IceAxe to empower students to effortlessly break the ice and forge meaningful connections through shared topics and engaging interactions.
