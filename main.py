@@ -8,7 +8,7 @@ from objects import Users, Groups, questions
 from src.utils.supabase_client import supabase
 from never_have_i_ever import never_have_i_ever, handle_poll_answer
 from guess_who import guess_who_init, guess_who_details, guess_who_start, guess_who_next, guess_who_end
-
+ 
 load_dotenv()
 
 TELE_API_KEY = os.getenv('TELE_API_KEY')

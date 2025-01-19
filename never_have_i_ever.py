@@ -57,14 +57,17 @@ def ask_next_question(bot, message, question_index):
         poll_id_to_question_index[poll_message.poll.id] = question_index
         poll_id_to_chat_id[poll_message.poll.id] = message.chat.id
         poll_answered[poll_message.poll.id] = False
-        threading.Timer(30.0, close_poll, args=[bot, poll_message.poll.id, message.chat.id, question_index]).start()
+        threading.Timer(5.0, close_poll, args=[bot, poll_message.poll.id, message.chat.id, question_index]).start()
     else:
         bot.send_message(message.chat.id, "Game over! Thanks for playing.")
         display_points(bot, message)
 
 def close_poll(bot, poll_id, chat_id, question_index):
-    if not poll_answered[poll_id]:
-        bot.stop_poll(chat_id, poll_id)
+    if poll_id in poll_answered and not poll_answered[poll_id]:
+        try:
+            bot.stop_poll(chat_id, poll_id)
+        except telebot.apihelper.ApiTelegramException as e:
+            print(f"Failed to stop poll {poll_id}: {e}")
         for user_id in user_points[chat_id]:
             if user_points[chat_id][user_id] > 0:
                 user_points[chat_id][user_id] -= 1
@@ -89,7 +92,7 @@ def handle_poll_answer(bot, poll_answer):
         poll_answered[poll_id] = True
         question_index = get_question_index(poll_id)
         # Ensure the next question is asked only after 30 seconds
-        threading.Timer(30.0, ask_next_question_by_poll, args=[bot, chat_id, question_index + 1]).start()
+        threading.Timer(5.0, ask_next_question_by_poll, args=[bot, chat_id, question_index + 1]).start()
 
 def get_question_index(poll_id):
     return poll_id_to_question_index.get(poll_id, 0)
@@ -109,7 +112,7 @@ def ask_next_question_by_poll(bot, chat_id, question_index):
         poll_id_to_question_index[poll_message.poll.id] = question_index
         poll_id_to_chat_id[poll_message.poll.id] = chat_id
         poll_answered[poll_message.poll.id] = False
-        threading.Timer(30.0, close_poll, args=[bot, poll_message.poll.id, chat_id, question_index]).start()
+        threading.Timer(5.0, close_poll, args=[bot, poll_message.poll.id, chat_id, question_index]).start()
     else:
         bot.send_message(chat_id, "Game over! Thanks for playing.")
         display_points_by_chat_id(bot, chat_id)
