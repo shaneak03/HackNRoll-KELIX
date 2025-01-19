@@ -35,7 +35,7 @@ def guess_who_init(message):
     start = types.InlineKeyboardButton("Start game!", callback_data='guessWhoStart')
     markup.add(rules, start)
     
-    welcome_msg = "Welcome to Guess Who? Attempt to guess who wrote the answers with as little hints as possible. The twist? The authors will have to mislead the group to hide their identity!"
+    welcome_msg = "Welcome to Guess Who🕵️‍♂️? Attempt to guess who wrote the answers with as little hints as possible. The twist? The authors will have to mislead😲 the group to hide their identity!"
 
     bot.send_message(message.chat.id, text = welcome_msg, reply_markup=markup)
     print("guess_who_init() finish execution")
@@ -50,8 +50,8 @@ def guess_who_details(message):
 
 def guess_who_start(call):
     markup = types.InlineKeyboardMarkup(row_width=1)
-    ghnext = types.InlineKeyboardButton("Next clue..", callback_data='guessWhoNext')
-    ghend = types.InlineKeyboardButton("Mysterious Author Found!", callback_data='guessWhoWin')
+    ghnext = types.InlineKeyboardButton("➡️ Next clue..", callback_data='guessWhoNext')
+    ghend = types.InlineKeyboardButton("🎉 Mysterious Author Found!", callback_data='guessWhoWin')
     markup.add(ghnext, ghend)
     
     pull_data(call)
@@ -61,7 +61,7 @@ def guess_who_start(call):
         data = list(data)
     first = random.choice(data)
     print(data)
-    bot.send_message(call.message.chat.id, text = f"First clue!~\n\nThe question is : {first[0]}\n\nThe answer is : {first[1]}", reply_markup=markup)
+    bot.send_message(call.message.chat.id, text = f"First clue!~\n\nThe question is : {first[0]}\n\nThe answer is : {first[1]} 🤔", reply_markup=markup)
 
     data.remove(first)  # Remove the selected row
     data = [row for row in data if row]  # Filter out empty rows
@@ -79,30 +79,30 @@ def guess_who_next(message):
     
     markup = types.InlineKeyboardMarkup(row_width=1)
     if len(data) > 1:
-        ghnext = types.InlineKeyboardButton("Next clue..", callback_data='guessWhoNext')
-        ghend = types.InlineKeyboardButton("Mysterious Author Found!", callback_data='guessWhoWin')
+        ghnext = types.InlineKeyboardButton("➡️ Next clue..", callback_data='guessWhoNext')
+        ghend = types.InlineKeyboardButton("🎉 Mysterious Author Found!", callback_data='guessWhoWin')
         markup.add(ghnext, ghend)
     else:
-        ghnext = types.InlineKeyboardButton("Last guess.....", callback_data='guessWhoLose')
-        ghend = types.InlineKeyboardButton("Mysterious Author Found!", callback_data='guessWhoWin')
+        ghnext = types.InlineKeyboardButton("➡️ Last guess.....", callback_data='guessWhoLose')
+        ghend = types.InlineKeyboardButton("🎉 Mysterious Author Found!", callback_data='guessWhoWin')
         markup.add(ghnext, ghend)
     demeanings = [
-  "Is that the best you can do?",
-  "Seriously? You can do better than that!",
-  "That was weak, come on!",
-  "Not even close, try again!",
-  "I expected more from you!",
-  "That was an easy one, what happened?",
-  "You're better than that!",
-  "Really? That's your final answer?",
-  "I thought you'd be quicker than that!",
-  "That guess was a stretch!"
+  "Is that the best you can do? 😂",
+  "Seriously? You can do better than that! 😤",
+  "That was weak, come on! 💀",
+  "Not even close, try again! 😂",
+  "I expected more from you! 💀",
+  "That was an easy one, what happened? 😤",
+  "You're better than that! 😂",
+  "Really? That's your final answer? 💀",
+  "I thought you'd be quicker than that! 😤",
+  "That guess was a stretch! 😂"
 ]
     demeaning = random.choice(list(demeanings))
     next_data = random.choice(data)
     print("data :", data)
     print(next_data)
-    bot.send_message(message.chat.id, text = demeaning + f"\n\nThe question is : {next_data[0]}\n\nThe answer is : {next_data[1]}", reply_markup=markup)
+    bot.send_message(message.chat.id, text = demeaning + f"\n\nThe question is : {next_data[0]}\n\nThe answer is : {next_data[1]} 🤔", reply_markup=markup)
     
     data.remove(next_data)  # Remove the selected row
     data = [row for row in data if row]  # Filter out empty rows
