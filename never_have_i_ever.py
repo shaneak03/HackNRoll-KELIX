@@ -95,12 +95,13 @@ def get_question_index(poll_id):
     return poll_id_to_question_index.get(poll_id, 0)
 
 def ask_next_question_by_poll(bot, chat_id, question_index):
-    if question_index < len(questions):
+    # if question_index < len(questions):
+    if question_index < 5:
         question = questions[question_index]
         poll_message = bot.send_poll(
             chat_id=chat_id,
             question=question,
-            options=["Yes", "No"],
+            options=["Have", "Have Not"],
             is_anonymous=False,
             allows_multiple_answers=False,
             type='regular'
