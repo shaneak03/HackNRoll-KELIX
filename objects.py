@@ -131,15 +131,6 @@ class Groups:
             ]).execute()
             print(f"Group with ID {self.grp_id} created.")
 
-    def pull_members(self):
-        group_response = supabase.table('Groups').select('grp_id').eq('grp_id', self.grp_id).execute()
-        if group_response.data:
-            group_data = group_response.data[0]
-            if 'members_id' in group_data:
-                self.members_id = group_data['members_id']
-            else:
-                print("No members found for the group.")
-
     def pull_facts_from_db(self, user_id):
         print("Pulling usr info")
         user = supabase.table('User').select('*').eq('id', user_id).execute()
@@ -174,18 +165,18 @@ class Groups:
         else:
             print("Group not found.")
 
-# if __name__ == "__main__":
-#     g1 = Groups("grp1")
-#     g1.add_member("test_id")
-#     g1.add_member("Test User2")
-#     print("g1 user created")
+if __name__ == "__main__":
+    g1 = Groups("grp1")
+    g1.add_member("test_id")
+    g1.add_member("Test User2")
+    print("g1 user created")
 
-#     g1.update_group_in_DB()
-#     print("g1 updated to db")
+    g1.update_group_in_DB()
+    print("g1 updated to db")
 
-#     g2 = Groups("grp1")
-#     g2.pull_all_facts_for_group()
-#     print("g2 pulled from db")
+    g2 = Groups("grp1")
+    g2.pull_all_facts_for_group()
+    print("g2 pulled from db")
 
-#     for facts in g2.qns_and_ans:
-#         print(facts)
+    for facts in g2.qns_and_ans:
+        print(facts)

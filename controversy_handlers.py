@@ -25,6 +25,6 @@ def create_poll(bot, message, poll_question):
     bot.send_poll(
         chat_id=message.chat.id,
         question=poll_question,
-        options=["Yes", "No"],
+        options=["Yes/Former", "No/Latter"],
         is_anonymous=False
     )
